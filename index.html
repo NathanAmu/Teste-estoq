@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+ <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -41,32 +41,26 @@
         <h1>Sistema de Estoque</h1>
         <p id="estoque">Carregando estoque...</p>
 
-        <!-- Botão de comprar -->
         <button id="comprarBtn" onclick="comprarProduto()">Comprar</button>
 
         <hr>
 
-        <!-- Formulário para adicionar estoque -->
         <h3>Adicionar Estoque</h3>
         <input type="number" id="quantidadeAdicionar" placeholder="Quantidade">
         <button onclick="adicionarEstoque()">Adicionar</button>
     </div>
 
     <script>
-        const backendUrl = "https://teste-backend-zwah.onrender.com"; // Troque pela URL do backend hospedado no Render
+        const backendUrl = "https://teste-backend-zwah.onrender.com"; // Substitua pela URL correta do Render
 
         async function atualizarEstoque() {
             try {
                 const response = await fetch(`${backendUrl}/api/estoque`);
                 const data = await response.json();
                 document.getElementById('estoque').textContent = `Estoque: ${data.quantidade}`;
-                if (data.quantidade === 0) {
-                    document.getElementById('comprarBtn').disabled = true;
-                } else {
-                    document.getElementById('comprarBtn').disabled = false;
-                }
+                document.getElementById('comprarBtn').disabled = data.quantidade === 0;
             } catch (error) {
-                console.error("Erro ao atualizar o estoque:", error);
+                console.error("Erro ao atualizar estoque:", error);
                 document.getElementById('estoque').textContent = "Erro ao carregar estoque.";
             }
         }
@@ -76,11 +70,8 @@
                 const response = await fetch(`${backendUrl}/api/comprar`, { method: 'POST' });
                 if (response.ok) {
                     const data = await response.json();
-                    document.getElementById('estoque').textContent = `Estoque: ${data.estoque}`;
-                    if (data.estoque === 0) {
-                        alert('Estoque esgotado!');
-                        document.getElementById('comprarBtn').disabled = true;
-                    }
+                    alert("Compra realizada com sucesso!");
+                    atualizarEstoque();
                 } else {
                     const error = await response.json();
                     alert(error.message);
@@ -91,11 +82,9 @@
         }
 
         async function adicionarEstoque() {
-            const quantidadeInput = document.getElementById('quantidadeAdicionar');
-            const quantidadeParaAdicionar = parseInt(quantidadeInput.value);
-
-            if (isNaN(quantidadeParaAdicionar) || quantidadeParaAdicionar <= 0) {
-                alert("Por favor, insira uma quantidade válida para adicionar.");
+            const quantidade = parseInt(document.getElementById('quantidadeAdicionar').value);
+            if (isNaN(quantidade) || quantidade <= 0) {
+                alert("Insira uma quantidade válida!");
                 return;
             }
 
@@ -103,13 +92,11 @@
                 const response = await fetch(`${backendUrl}/api/adicionar`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ quantidade: quantidadeParaAdicionar })
+                    body: JSON.stringify({ quantidade })
                 });
-
                 if (response.ok) {
-                    const data = await response.json();
-                    alert("Estoque atualizado com sucesso!");
-                    atualizarEstoque(); // Atualiza a interface com o novo estoque
+                    alert("Estoque adicionado com sucesso!");
+                    atualizarEstoque();
                 } else {
                     const error = await response.json();
                     alert(error.message);
@@ -119,7 +106,7 @@
             }
         }
 
-        // Atualizar estoque ao carregar a página
+        // Atualiza o estoque ao carregar a página
         atualizarEstoque();
     </script>
 </body>
