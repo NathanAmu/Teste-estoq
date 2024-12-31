@@ -28,13 +28,28 @@
             background-color: #ccc;
             cursor: not-allowed;
         }
+        input {
+            padding: 10px;
+            width: 100%;
+            margin-top: 10px;
+            box-sizing: border-box;
+        }
     </style>
 </head>
 <body>
     <div class="container">
         <h1>Sistema de Estoque</h1>
         <p id="estoque">Carregando estoque...</p>
+
+        <!-- Botão de comprar -->
         <button id="comprarBtn" onclick="comprarProduto()">Comprar</button>
+
+        <hr>
+
+        <!-- Formulário para adicionar estoque -->
+        <h3>Adicionar Estoque</h3>
+        <input type="number" id="quantidadeAdicionar" placeholder="Quantidade">
+        <button onclick="adicionarEstoque()">Adicionar</button>
     </div>
 
     <script>
@@ -47,6 +62,8 @@
                 document.getElementById('estoque').textContent = `Estoque: ${data.quantidade}`;
                 if (data.quantidade === 0) {
                     document.getElementById('comprarBtn').disabled = true;
+                } else {
+                    document.getElementById('comprarBtn').disabled = false;
                 }
             } catch (error) {
                 console.error("Erro ao atualizar o estoque:", error);
@@ -70,6 +87,35 @@
                 }
             } catch (error) {
                 console.error("Erro ao comprar produto:", error);
+            }
+        }
+
+        async function adicionarEstoque() {
+            const quantidadeInput = document.getElementById('quantidadeAdicionar');
+            const quantidadeParaAdicionar = parseInt(quantidadeInput.value);
+
+            if (isNaN(quantidadeParaAdicionar) || quantidadeParaAdicionar <= 0) {
+                alert("Por favor, insira uma quantidade válida para adicionar.");
+                return;
+            }
+
+            try {
+                const response = await fetch(`${backendUrl}/api/adicionar`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ quantidade: quantidadeParaAdicionar })
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    alert("Estoque atualizado com sucesso!");
+                    atualizarEstoque(); // Atualiza a interface com o novo estoque
+                } else {
+                    const error = await response.json();
+                    alert(error.message);
+                }
+            } catch (error) {
+                console.error("Erro ao adicionar estoque:", error);
             }
         }
 
