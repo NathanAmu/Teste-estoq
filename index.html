@@ -3,78 +3,58 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sistema de Estoques</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            text-align: center;
-            margin-top: 50px;
+    <title>Sistema de Estoque</title>
+    <script>
+        async function carregarEstoque() {
+            const resposta = await fetch('/estoque');
+            const estoque = await resposta.json();
+            const lista = document.getElementById('estoque');
+            lista.innerHTML = '';
+            estoque.forEach(produto => {
+                lista.innerHTML += `
+                    <li>
+                        ${produto.nome} - Quantidade: ${produto.quantidade}
+                        <button onclick="comprar(${produto.id})" ${produto.quantidade === 0 ? 'disabled' : ''}>Comprar</button>
+                    </li>`;
+            });
         }
-        .container {
-            max-width: 300px;
-            margin: auto;
-            padding: 20px;
-            border: 1px solid #ccc;
-            border-radius: 10px;
-            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+
+        async function comprar(id) {
+            const resposta = await fetch(`/comprar/${id}`, { method: 'POST' });
+            const resultado = await resposta.json();
+            alert(resultado.mensagem || resultado.erro);
+            carregarEstoque();
         }
-        button {
-            padding: 10px 20px;
-            font-size: 16px;
-            margin-top: 10px;
-            cursor: pointer;
+
+        async function adicionarProduto() {
+            const nome = document.getElementById('nome').value;
+            const quantidade = parseInt(document.getElementById('quantidade').value);
+
+            const resposta = await fetch('/adicionar', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ nome, quantidade }),
+            });
+
+            const resultado = await resposta.json();
+            alert(resultado.mensagem || resultado.erro);
+            carregarEstoque();
         }
-        button:disabled {
-            background-color: #ccc;
-            cursor: not-allowed;
-        }
-    </style>
+
+        document.addEventListener('DOMContentLoaded', carregarEstoque);
+    </script>
 </head>
 <body>
-    <div class="container">
-        <h1>Sistema de Estoque</h1>
-        <p id="estoque">Carregando estoque...</p>
-        <button id="comprarBtn" onclick="comprarProduto()">Comprar</button>
-    </div>
-
-    <script>
-        const backendUrl = "https://teste-backend-zwah.onrender.com"; // Troque pela URL do backend hospedado no Render
-
-        async function atualizarEstoque() {
-            try {
-                const response = await fetch(`${backendUrl}/api/estoque`);
-                const data = await response.json();
-                document.getElementById('estoque').textContent = `Estoque: ${data.quantidade}`;
-                if (data.quantidade === 0) {
-                    document.getElementById('comprarBtn').disabled = true;
-                }
-            } catch (error) {
-                console.error("Erro ao atualizar o estoque:", error);
-                document.getElementById('estoque').textContent = "Erro ao carregar estoque.";
-            }
-        }
-
-        async function comprarProduto() {
-            try {
-                const response = await fetch(`${backendUrl}/api/comprar`, { method: 'POST' });
-                if (response.ok) {
-                    const data = await response.json();
-                    document.getElementById('estoque').textContent = `Estoque: ${data.estoque}`;
-                    if (data.estoque === 0) {
-                        alert('Estoque esgotado!');
-                        document.getElementById('comprarBtn').disabled = true;
-                    }
-                } else {
-                    const error = await response.json();
-                    alert(error.message);
-                }
-            } catch (error) {
-                console.error("Erro ao comprar produto:", error);
-            }
-        }
-
-        // Atualizar estoque ao carregar a página
-        atualizarEstoque();
-    </script>
+    <h1>Sistema de Estoque</h1>
+    <ul id="estoque"></ul>
+    <hr>
+    <h2>Adicionar Produto</h2>
+    <form onsubmit="event.preventDefault(); adicionarProduto();">
+        <label for="nome">Nome:</label>
+        <input type="text" id="nome" required>
+        <label for="quantidade">Quantidade:</label>
+        <input type="number" id="quantidade" required>
+        <button type="submit">Adicionar</button>
+    </form>
 </body>
 </html>
